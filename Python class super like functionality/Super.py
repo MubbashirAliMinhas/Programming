@@ -7,11 +7,8 @@ class Super:
             self.obj = obj
             self.owner = owner
             self.mro_start = 0
-            try:
-                if isinstance(self.get_obj, self.owner):
-                    self.mro_start = 1
-            except KeyError:
-                pass
+            if isinstance(self.get_obj, self.owner):
+                self.mro_start = 1
         else:
             self.obj = self.get_obj
             self.owner = type(self.obj)
@@ -57,7 +54,7 @@ class A:
 
 class B(A):
     def __init__(self):
-        Super().__init__()
+        Super(type(self), self).__init__()
 
 
 b = B()
