@@ -1,5 +1,16 @@
 import inspect
 
+class Specials:
+    def __init__(self):
+        self.specials = set(x for x in dir(self) if x.startswith('__') and x.endswith('__'))
+        self.specials_filter = {'__init__'}
+        self.specials.difference(self.specials_filter)
+
+
+class SpecialsStore:
+    specials = Specials().specials
+
+
 class Super:
     def __init__(self, owner=None, obj=None):
         self.init_call = True
@@ -24,6 +35,8 @@ class Super:
                 self.init_call = False
             if not self.init_call:
                 raise AttributeError
+        if name in SpecialsStore.specials:
+            raise AttributeError
         return object.__getattribute__(self, name)
     
     def __getattr__(self, name):
@@ -31,8 +44,12 @@ class Super:
         mro = self.owner.mro()
         for x in range(self.mro_start, len(mro)):
             p_owner = mro[x]
+            p_obj = p_owner()
             if hasattr(p_owner, name):
                 attr = getattr(p_owner, name)
+                break
+            elif hasattr(p_obj, name):
+                attr = getattr(p_obj, name)
                 break
         if attr is None:
             raise AttributeError('Attribute not found in the class hierarchy')
@@ -54,8 +71,15 @@ class A:
 
 class B(A):
     def __init__(self):
-        Super(type(self), self).__init__()
+        Super().__init__()
 
+class C(B):
+    def __init__(self):
+        self.a = Super().a
+        self.b = Super().b
 
 b = B()
 print(b.repr())
+
+c = C()
+print(c.a)
