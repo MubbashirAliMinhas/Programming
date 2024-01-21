@@ -3,8 +3,6 @@ import inspect
 class Specials:
     def __init__(self):
         self.specials = set(x for x in dir(self) if x.startswith('__') and x.endswith('__'))
-        self.specials_filter = {'__init__'}
-        self.specials.difference(self.specials_filter)
 
 
 class SpecialsStore:
@@ -13,7 +11,6 @@ class SpecialsStore:
 
 class Super:
     def __init__(self, owner=None, obj=None):
-        self.init_call = True
         if obj is not None and owner is not None:
             self.obj = obj
             self.owner = owner
@@ -30,11 +27,6 @@ class Super:
         return inspect.currentframe().f_back.f_back.f_back.f_locals['self']
 
     def __getattribute__(self, name):
-        if name == '__init__':
-            if self.init_call:
-                self.init_call = False
-            if not self.init_call:
-                raise AttributeError
         if name in SpecialsStore.specials:
             raise AttributeError
         return object.__getattribute__(self, name)
